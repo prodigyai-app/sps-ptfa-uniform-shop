@@ -1,6 +1,9 @@
 -- Run AFTER the original schema.sql (or on the existing shop database).
 -- Repeatable; does not recreate tables or remove stock, admins or reservations.
 begin;
+-- Admin membership is only queried by signed-in admins and protected policies.
+revoke execute on function public.is_admin() from public,anon;
+grant execute on function public.is_admin() to authenticated;
 alter table public.reservations add column if not exists email_status text not null default 'unknown';
 create table if not exists public.checkout_requests (
  request_id uuid primary key,

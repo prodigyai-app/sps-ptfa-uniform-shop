@@ -1,13 +1,14 @@
 // Deploy with --no-verify-jwt. Keep service role and email credentials ONLY in Edge Function secrets.
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 const origin = Deno.env.get('SHOP_ORIGIN') || '';
-const cors = { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+const cors = { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' };
 const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control':'no-store', 'Vary':'Origin' } });
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] ?? c));
 Deno.serve(async req => {
  if (!origin) return json({error:'Checkout setup is incomplete. Contact the PTFA.'},503);
  if (req.headers.get('origin') !== origin) return json({error:'Origin not allowed'},403);
  if (req.method === 'OPTIONS') return new Response(null, {headers:cors});
+ if (req.method === 'GET') return json({checkout_configured:Boolean(Deno.env.get('SUPABASE_URL')&&Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')),reservation_email_configured:Boolean(Deno.env.get('RESEND_API_KEY')&&Deno.env.get('EMAIL_FROM')),anti_spam_configured:Boolean(Deno.env.get('TURNSTILE_SECRET_KEY'))});
  if (req.method !== 'POST') return json({error:'POST required'},405);
  try {
   const raw=await req.text();
