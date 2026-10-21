@@ -9,14 +9,14 @@ Checkout Edge Function v4 is ACTIVE. Retrieved deployed code matches the clean s
 54 automated local checks pass. Live CORS/input/security probes pass. Gmail credentials are now configured. A user-authorized test reservation returned accepted for both notification messages; all test records were removed and cleanup verified. GET readiness exposes configuration booleans only, never secret values.
 
 REMAINING:
-- Reservation email is configured: Gmail authenticated and accepted both authorized test notifications. Inbox arrival remains to be confirmed by the user. GMAIL_APP_PASSWORD is stored only in Supabase Function secrets; no Resend account or custom domain is needed.
+- Reservation email is configured: Gmail authenticated and accepted both authorized test notifications. The user confirmed both test emails arrived in the PTFA Gmail account. Delivery to external parent addresses remains untested. GMAIL_APP_PASSWORD is stored only in Supabase Function secrets; no Resend account or custom domain is needed.
   https://supabase.com/dashboard/project/jouszfcpbhhvmwubluqu/functions/secrets
 - Turnstile is NOT configured: set its site key in site/config.js and its matching secret in Function secrets before a public launch.
 - Auth Site URL and password recovery redirect were submitted via the browser but their persisted values still need confirmation:
   Site URL: https://prodigyai-app.github.io/sps-ptfa-uniform-shop/
   Redirect: https://prodigyai-app.github.io/sps-ptfa-uniform-shop/?recovery=1
   https://supabase.com/dashboard/project/jouszfcpbhhvmwubluqu/auth/url-configuration
-- Add real stock through Admin; perform the acceptance test in README. One labelled test order and two notifications were tested and all test database records were removed. Actual photo uploads, password resets, payments and inbox delivery remain unverified.
+- Add real stock through Admin; perform the acceptance test in README. One labelled test order and two notifications were tested and all test database records were removed. Actual photo uploads, password resets, payments and delivery to external parent addresses remain unverified.
 
 Private credentials must be entered directly in Supabase, never pasted into chat or committed to GitHub.
 The connected Supabase integration can inspect and change the database and deploy functions, but offers no Auth URL settings or secret-entry tools. Edge control remains unavailable.
