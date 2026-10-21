@@ -74,12 +74,14 @@ ok(run("safeImage('javascript:alert(1)')")==='assets/logo.png','unsafe image URL
 ok(!run("linkify('<img src=x onerror=alert(1)> https://example.com/a\"b test@example.com')").includes('<img'),'announcement HTML is escaped');
 data.set('spsBasket:/uniform-shop/',JSON.stringify({started:Date.now()-600001,lines:{1:1}}));ok(Object.keys(run('getBasket().lines')).length===0,'ten-minute basket expires');
 data.set('spsBasket:/uniform-shop/',JSON.stringify({started:Date.now(),lines:{1:-1}}));ok(Object.keys(run('getBasket().lines')).length===0,'corrupt stored basket rejected');
-// Edge function executed with mocked database, Turnstile and Resend transports.
-const edge=ts.transpileModule(read('supabase/functions/reserve/index.ts').replace(/^import .*;$/m,''),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},reportDiagnostics:true});
+// Edge function executed with mocked database, Turnstile, Gmail and Resend transports.
+const edge=ts.transpileModule(read('supabase/functions/reserve/index.ts').replace(/^import .*;$/gm,''),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},reportDiagnostics:true});
 ok(!edge.diagnostics?.length,'Edge Function TypeScript transpiles');
 const env=new Map([['SHOP_ORIGIN','https://example.github.io'],['SUPABASE_URL','https://example.supabase.co'],['SUPABASE_SERVICE_ROLE_KEY','test-service-key']]);let handler,calls=0,sends=0,emailStatus,mode='new';
 const edgeDb={rpc:async()=>{calls++;return{data:{id:request,total_pence:250,lines:[{name:'Sweatshirt',size:'5-6',condition:'Good',price_pence:250,quantity:1}],replayed:mode==='replay',email_status:'accepted'}}},from:()=>({update:x=>({eq:async()=>{emailStatus=x.email_status;return{}}})})};
-const edgeCtx=vm.createContext({Deno:{env:{get:k=>env.get(k)},serve:h=>handler=h},createClient:()=>edgeDb,Response,TextEncoder,FormData,URL,AbortSignal,console,fetch:async(url,opts)=>{if(url.includes('turnstile'))return Response.json({success:true,hostname:'example.github.io'});sends++;return Response.json({id:'provider-id'},{status:mode==='mailfail'?500:200})}});
+let smtpOptions,smtpMessages=[],smtpClosed=0,smtpMode='success';
+const nodemailer={createTransport:options=>{smtpOptions=options;return{sendMail:async message=>{smtpMessages.push(message);if(smtpMode==='throw')throw Error('test SMTP failure');return smtpMode==='reject'&&message.to==='test@example.com'?{accepted:[],rejected:[message.to]}:{accepted:[message.to],rejected:[]}},close:()=>{smtpClosed++}}}};
+const edgeCtx=vm.createContext({Deno:{env:{get:k=>env.get(k)},serve:h=>handler=h},nodemailer,createClient:()=>edgeDb,Response,TextEncoder,FormData,URL,AbortSignal,console,fetch:async(url,opts)=>{if(url.includes('turnstile'))return Response.json({success:true,hostname:'example.github.io'});sends++;return Response.json({id:'provider-id'},{status:mode==='mailfail'?500:200})}});
 vm.runInContext(edge.outputText,edgeCtx);
 let health=await handler(new Request('https://example.supabase.co/functions/v1/reserve',{headers:{origin:'https://example.github.io'}}));let healthData=await health.json();ok(health.status===200&&healthData.checkout_configured&&!healthData.reservation_email_configured,'readiness probe reports configuration without secrets');ok(!JSON.stringify(healthData).includes('test-service-key'),'readiness never returns secret values');
 const payload={request_id:request,name:'Test Parent',child_class:'Class 1',email:'test@example.com',lines:basket};
@@ -94,5 +96,18 @@ mode='mailfail';response=await post();ok((await response.json()).email_status===
 mode='replay';const before=sends;response=await post();ok((await response.json()).reservation_id===request&&sends===before,'checkout replay does not send duplicate emails');
 env.set('TURNSTILE_SECRET_KEY','test-turnstile');ok((await post()).status===400,'configured Turnstile blocks missing tokens');
 mode='new';response=await post({...payload,turnstile_token:'test-token'});ok(response.status===200,'valid Turnstile response accepted (mocked)');
+env.delete('TURNSTILE_SECRET_KEY');env.set('GMAIL_APP_PASSWORD','abcd efgh ijkl mnop');
+health=await handler(new Request('https://example.supabase.co/functions/v1/reserve',{headers:{origin:'https://example.github.io'}}));healthData=await health.json();
+ok(healthData.reservation_email_configured&&!JSON.stringify(healthData).includes('abcd'),'Gmail readiness reports presence without disclosing password');
+const resendBefore=sends;response=await post();
+ok((await response.json()).email_status==='accepted'&&smtpMessages.length===2&&sends===resendBefore,'configured Gmail sends both notifications and takes precedence over Resend (mocked)');
+ok(smtpOptions.host==='smtp.gmail.com'&&smtpOptions.port===465&&smtpOptions.secure===true&&smtpOptions.tls.minVersion==='TLSv1.2','Gmail transport uses implicit TLS on permitted SMTP port 465');
+ok(smtpOptions.auth.user==='spsptfa.useduniform@gmail.com'&&smtpOptions.auth.pass==='abcdefghijklmnop'&&smtpOptions.logger===false&&smtpOptions.debug===false,'Gmail account is fixed and app-password grouping spaces removed with protocol logging disabled');
+ok(smtpMessages[0].to==='spsptfa.useduniform@gmail.com'&&smtpMessages[1].to==='test@example.com'&&smtpMessages.every(m=>m.from.address==='spsptfa.useduniform@gmail.com'&&m.replyTo==='spsptfa.useduniform@gmail.com'&&!m.html.includes('abcdefghijklmnop')),'Gmail notifications preserve recipient, sender and reply-to without including credentials');
+smtpMode='reject';response=await post();ok((await response.json()).email_status==='failed'&&emailStatus==='failed','one rejected Gmail recipient marks notifications failed while preserving reservation');
+smtpMode='throw';response=await post();ok(response.status===200&&(await response.json()).email_status==='failed'&&sends===resendBefore,'Gmail connection failure preserves reservation without provider fallback or duplicate sends');
+ok(smtpClosed===3,'Gmail transport is closed after accepted, rejected and failed attempts');
+mode='replay';const smtpBefore=smtpMessages.length;response=await post();ok((await response.json()).reservation_id===request&&smtpMessages.length===smtpBefore,'Gmail checkout replay sends no additional messages');
+env.delete('RESEND_API_KEY');env.delete('EMAIL_FROM');mode='new';smtpMode='success';response=await post();ok((await response.json()).email_status==='accepted','Gmail requires no Resend credentials or custom domain (mocked)');
 console.log(`TOTAL ${checks} checks passed. No live writes or email sends.`);
 

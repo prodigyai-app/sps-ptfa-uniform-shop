@@ -5,11 +5,11 @@ SOURCE: https://github.com/prodigyai-app/sps-ptfa-uniform-shop
 
 Frontend deployed and browser-verified. Live HTML, JS, CSS, configuration, SDK and logo match the package. Catalogue is empty; one admin is configured.
 Database upgrade applied. All protected tables have RLS. Unnecessary guest access to is_admin removed. Reservation/retry/admin-cancellation checks passed on the live database inside a rolled-back transaction; no fixture rows persisted.
-Checkout Edge Function v3 is ACTIVE. Retrieved deployed code matches the clean source, with browser starter-template code removed. Guest checkout is enabled as approved. SHOP_ORIGIN is configured.
-44 automated local checks pass. Live CORS/input/security probes pass. GET readiness exposes configuration booleans only, never secret values.
+Checkout Edge Function v4 is ACTIVE. Retrieved deployed code matches the clean source, with browser starter-template code removed. Guest checkout is enabled as approved. SHOP_ORIGIN is configured.
+54 automated local checks pass. Live CORS/input/security probes pass. GET readiness exposes configuration booleans only, never secret values.
 
 REMAINING:
-- Reservation email is NOT configured: set RESEND_API_KEY and EMAIL_FROM directly in Supabase Function secrets using the existing Resend account and verified sender domain.
+- Reservation email is NOT configured: set GMAIL_APP_PASSWORD directly in Supabase Function secrets using a Google app password for spsptfa.useduniform@gmail.com. No Resend account or custom domain is needed. The Gmail implementation is deployed but real authentication/delivery remains untested.
   https://supabase.com/dashboard/project/jouszfcpbhhvmwubluqu/functions/secrets
 - Turnstile is NOT configured: set its site key in site/config.js and its matching secret in Function secrets before a public launch.
 - Auth Site URL and password recovery redirect were submitted via the browser but their persisted values still need confirmation:
