@@ -1,0 +1,8 @@
+{
+  "name": "sps-ptfa-uniform-shop",
+  "private": true,
+  "type": "module",
+  "scripts": {"test": "node tests/verify.mjs"},
+  "engines": {"node": ">=20"},
+  "devDependencies": {"@electric-sql/pglite": "0.3.14", "typescript": "5.9.3"}
+}

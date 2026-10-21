@@ -1,0 +1,6 @@
+project_id = "sps-ptfa-uniform-shop"
+
+# Guest checkout: input validation and optional Turnstile run inside the function.
+# A publishable key belongs in apikey, never Authorization: Bearer.
+[functions.reserve]
+verify_jwt = false

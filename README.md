@@ -1,2 +1,50 @@
-# sps-ptfa-uniform-shop
-SPS PTFA pre-loved uniform reservation shop — static frontend with Supabase checkout.
+# SPS PTFA Used Uniform Shop — GitHub Pages package
+
+Prepared from the supplied **new** `sps-ptfa-free-shop.zip` on 21 October 2026. No deployment, live database changes, reservation submissions or email sends were performed.
+
+The public project URL and publishable key are already set in `site/config.js` for `jouszfcpbhhvmwubluqu`. This is the project base URL, without `/rest/v1/`. The public key is intended for browser use; all privileged credentials stay in Supabase Function secrets.
+
+## Deploy
+
+1. **Database:** your project already responds to public catalogue reads. Run **`supabase/upgrade.sql`** in its SQL Editor. It is repeatable and preserves existing admins, stock and orders. Do **not** rerun `schema.sql` on the existing database: that original file is for a fresh installation only. For a fresh project, run `schema.sql` then `upgrade.sql`.
+2. **GitHub Pages:** put the entire contents of this folder in the root of your repository, with `site/`, `supabase/` and `.github/` alongside this README. Use branch `main`. In **Settings → Pages → Source**, choose **GitHub Actions**, then run the included **Deploy static shop to GitHub Pages** workflow (or push to `main`). It publishes only `site/`. Your URL will be `https://OWNER.github.io/REPOSITORY/`. Keep the trailing slash. This package includes a deployment workflow; it has not been run here.
+3. **Supabase Auth:** in **Authentication → URL Configuration**, set Site URL to that full Pages URL, including `/REPOSITORY/`. Add the exact redirect URL `https://OWNER.github.io/REPOSITORY/?recovery=1`. Retain the existing admin account. If needed, create a confirmed user in Auth and add its UUID using `insert into public.admins(user_id) values ('AUTH-USER-UUID') on conflict do nothing;`. Disable public sign-ups if unnecessary. Password reset uses Supabase Auth email settings, separately from reservation email settings.
+4. **Checkout:** install the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started), then run these from this folder:
+
+   ```sh
+   supabase login
+   supabase link --project-ref jouszfcpbhhvmwubluqu
+   supabase secrets set SHOP_ORIGIN=https://OWNER.github.io
+   supabase functions deploy reserve --no-verify-jwt
+   ```
+
+   `SHOP_ORIGIN` is the origin only, without a repository path or trailing slash. Guest checkout is intentionally public; the function validates origin and inputs and calls the service-only SQL transaction. `--no-verify-jwt` is also recorded in `supabase/config.toml`. The publishable key is sent in `apikey`, never as a bearer JWT. There is no direct browser-to-database checkout fallback. **Deploy the updated function after running the upgrade.**
+5. **Reservation emails:** create a [Resend](https://resend.com) account and verify a sender domain. In Supabase **Edge Functions → Secrets**, set `RESEND_API_KEY` and `EMAIL_FROM` (for example, `SPS PTFA <orders@YOUR-VERIFIED-DOMAIN>`). Do not put these values in GitHub or `site/config.js`. Supabase supplies `SUPABASE_SERVICE_ROLE_KEY` to the function automatically. Messages go to **spsptfa.useduniform@gmail.com** and the parent. An ordinary Gmail address is not a verified Resend sender domain. Until these are configured, reservations can save but emails are explicitly marked `not_configured`.
+6. **Anti-spam:** before public launch, configure Cloudflare Turnstile for `OWNER.github.io`; put its public site key in `site/config.js`, and its matching `TURNSTILE_SECRET_KEY` in Supabase Function secrets. Both halves must match. Without the secret, checkout remains public with validation and a honeypot, but no CAPTCHA or rate limiter. CORS alone does not prevent automated abuse. Add monitoring/rate limiting if needed.
+7. **Acceptance test before sharing:** sign in as admin; add a test product, image and two units of stock. In a separate signed-out browser, reserve one using a real test email. Check the receipt/reference, stock decrement, admin order, **both delivered emails**, and PayPal.Me destination. Cancel the order and verify stock returns exactly once. Test password recovery, mobile layout, and your final Pages repository URL. No real test order or email delivery has been verified in this preparation.
+
+Alternative without Actions: publish the **contents** of `site/` at your repository root and choose Pages → Deploy from a branch → `main` → `/ (root)`. Keep the Supabase folder separately for CLI deployment. Never upload only the containing folder when using this option.
+
+## Preserved behaviour
+
+- Shop and admin, announcements, item/stock editing and cancellation/restocking.
+- Natural size order (5–6, 9–10, 10–11, then S, M, L, XL).
+- Ten-minute browser basket; stock is held only after successful reservation.
+- Public product photo bucket `uniform-images`, admin-only uploads, 5 MB maximum, JPEG/PNG/WebP/GIF. Upgrade configures this bucket without deleting existing photos. Bundled reference photos remain in `site/assets/`; no old stock/orders are imported or invented.
+- Reservation emails to PTFA and parent; full reference and honest email status on receipt/admin.
+- Payment link: **https://www.paypal.com/paypalme/spptfa**. Payment is checked manually; checkout does not process or verify PayPal payments. The payment request is within 3 days; unpaid orders are cancelled/restocked manually by an admin, with no automatic expiry job.
+
+## Changes and verification
+
+- Configured the supplied Supabase URL/public key. All assets use relative paths and the Supabase browser library is bundled locally at pinned version 2.57.4 with its MIT licence.
+- Added repository-specific basket/Auth storage and password recovery that returns to the same repository subpath. No server rewrite routes are needed.
+- Added service-only `reserve_once` SQL with a checkout UUID, payload matching and an advisory transaction lock. Retrying unchanged details in the same basket reuses the receipt and does not decrement stock/send email twice. Keep the reference if a connection fails; contact PTFA before starting a different basket if uncertain.
+- Added origin validation, bounded input, explicit grants, photo limits, safe announcement links and admin-visible email status. Frontend contains no service-role, email or Turnstile secret values.
+- Email provider HTTP acceptance is shown as `accepted`, **not proof of inbox delivery**. Failures preserve the order. `pending`/`unknown` needs manual checking; no automatic email retry queue is included. Admins see the newest 200 orders and their paginated order lines.
+- See `VERIFICATION.md` and `tests/` for the local checks and their limits.
+
+## Data care and references
+
+Names, email addresses and child/class details are private admin-only data. `checkout_requests` stores the same contact payload for retry protection and has no browser access. Include it in the PTFA retention/deletion policy; deleting it removes retry protection for the associated request. Public Storage is for product photographs only. Publish an appropriate PTFA privacy notice before live orders. Check provider plans/quotas and hosting terms for your use.
+
+Official references: [Supabase keys](https://supabase.com/docs/guides/getting-started/api-keys), [Auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls), [Edge Function auth](https://supabase.com/docs/guides/functions/auth), [GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [Resend idempotency](https://resend.com/changelog/idempotency-keys).
