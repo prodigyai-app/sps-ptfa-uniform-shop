@@ -6,17 +6,17 @@ SOURCE: https://github.com/prodigyai-app/sps-ptfa-uniform-shop
 Frontend deployed and browser-verified. Live HTML, JS, CSS, configuration, SDK and logo match the package. Catalogue is empty; one admin is configured.
 Database upgrade applied. All protected tables have RLS. Unnecessary guest access to is_admin removed. Reservation/retry/admin-cancellation checks passed on the live database inside a rolled-back transaction; no fixture rows persisted.
 Checkout Edge Function v4 is ACTIVE. Retrieved deployed code matches the clean source, with browser starter-template code removed. Guest checkout is enabled as approved. SHOP_ORIGIN is configured.
-54 automated local checks pass. Live CORS/input/security probes pass. GET readiness exposes configuration booleans only, never secret values.
+54 automated local checks pass. Live CORS/input/security probes pass. Gmail credentials are now configured. A user-authorized test reservation returned accepted for both notification messages; all test records were removed and cleanup verified. GET readiness exposes configuration booleans only, never secret values.
 
 REMAINING:
-- Reservation email is NOT configured: set GMAIL_APP_PASSWORD directly in Supabase Function secrets using a Google app password for spsptfa.useduniform@gmail.com. No Resend account or custom domain is needed. The Gmail implementation is deployed but real authentication/delivery remains untested.
+- Reservation email is configured: Gmail authenticated and accepted both authorized test notifications. Inbox arrival remains to be confirmed by the user. GMAIL_APP_PASSWORD is stored only in Supabase Function secrets; no Resend account or custom domain is needed.
   https://supabase.com/dashboard/project/jouszfcpbhhvmwubluqu/functions/secrets
 - Turnstile is NOT configured: set its site key in site/config.js and its matching secret in Function secrets before a public launch.
 - Auth Site URL and password recovery redirect were submitted via the browser but their persisted values still need confirmation:
   Site URL: https://prodigyai-app.github.io/sps-ptfa-uniform-shop/
   Redirect: https://prodigyai-app.github.io/sps-ptfa-uniform-shop/?recovery=1
   https://supabase.com/dashboard/project/jouszfcpbhhvmwubluqu/auth/url-configuration
-- Add real stock through Admin; perform the acceptance test in README. No real orders, real emails, actual photo uploads, password resets or payments have been tested.
+- Add real stock through Admin; perform the acceptance test in README. One labelled test order and two notifications were tested and all test database records were removed. Actual photo uploads, password resets, payments and inbox delivery remain unverified.
 
 Private credentials must be entered directly in Supabase, never pasted into chat or committed to GitHub.
 The connected Supabase integration can inspect and change the database and deploy functions, but offers no Auth URL settings or secret-entry tools. Edge control remains unavailable.
