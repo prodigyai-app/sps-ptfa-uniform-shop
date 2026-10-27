@@ -1,6 +1,6 @@
-# Verification — 21 October 2026
+# Verification — updated 27 October 2026
 
-**Result: 54 automated local checks passed.** See `tests/verify.mjs`. Install Node.js 20+ and run `npm install` then `npm test` to repeat. No build is needed for the website. Test-only dependencies are not served by the included Pages workflow.
+**Result: 65 automated local checks passed.** See `tests/verify.mjs`. Install Node.js 20+ and run `npm install` then `npm test` to repeat. No build is needed for the website. Test-only dependencies are not served by the included Pages workflow.
 
 - Executed the original schema and upgrade SQL in PGlite (PostgreSQL compiled to WASM), including applying the upgrade twice. The fixture supplies Supabase-like Auth/Storage schemas, roles and default table grants; its `auth.uid()` reads a test claim. PGlite's built-in `gen_random_uuid` is used instead of loading pgcrypto. This is not a full hosted Supabase integration test.
 - Checked price calculation, stock decrement, multi-line transaction rollback, retry idempotency, changed payload rejection, duplicate/malformed lines, last-unit exhaustion, completion and cancellation/restocking.
@@ -35,3 +35,11 @@ The saved order status was accepted, stock decremented from one to zero, and rep
 A second user-authorized zero-value test reservation was submitted on 21 October 2026 using a different parent email address. Checkout returned HTTP 200 and accepted for both notifications. The user confirmed the parent confirmation arrived. The exact temporary item, stock, reservation, lines and retry record were removed and all five cleanup counts verified as zero. The catalogue before and after remained eight items with photo URLs and zero stock rows. The personal test email address is intentionally omitted from this public package.
 
 This establishes delivery for the two tested Gmail mailboxes; delivery to every future recipient is not guaranteed. Add stock variants (size, condition, price, quantity) before accepting orders. The previously noted empty catalogue reflects the earlier check; it has since been populated by the user.
+
+## Christmas jumper category update - 27 October 2026
+
+65 automated local checks pass. New checks cover category defaults and constraints, separate storefront filters, admin/non-admin category permissions, moving an item without changing stock, shared basket/Auth path scope, and a mixed-category reservation with server-calculated prices. The repeatable upgrade is applied twice in the local PostgreSQL test.
+
+Edge browser preview at a GitHub Pages-style subpath verified the promotion link, real uniform catalogue, seasonal empty state, and mobile promotion layout. Local-only browser fixtures verified adding a Christmas item and stock variant, category changes retaining stock, All categories, automatic selection of a newly added item, natural size order, exclusion from the uniform catalogue, and a mixed uniform/jumper basket totalling correctly across page navigation. Fixture pages were served only by the local QA server, with no production data or email writes. These fixture scripts are not shipped to GitHub Pages.
+
+The live category update was applied using the signed-in Supabase dashboard after the connector denied project access. All eight existing items remain in Uniform with all eight photo URLs retained. No donated jumper records were invented, and no new live test reservation or email was sent for this change. Existing checkout function and email configuration are unchanged. New HTML pages and assets are verified after GitHub Pages publication.

@@ -58,4 +58,11 @@ grant execute on function public.reserve_once(uuid,text,text,text,jsonb) to serv
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('uniform-images','uniform-images',true,5242880,array['image/jpeg','image/png','image/webp','image/gif'])
 on conflict(id) do update set public=true,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
+-- Repeatable category update; existing items remain normal school uniform.
+alter table public.items add column if not exists category text not null default 'uniform';
+do $$ begin
+ if not exists (select 1 from pg_constraint where conrelid='public.items'::regclass and conname='items_category_check') then
+  alter table public.items add constraint items_category_check check(category in ('uniform','xmas_jumpers'));
+ end if;
+end $$;
 commit;

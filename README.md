@@ -27,6 +27,17 @@ The public project URL and publishable key are already set in `site/config.js` f
 
 Alternative without Actions: publish the **contents** of `site/` at your repository root and choose Pages → Deploy from a branch → `main` → `/ (root)`. Keep the Supabase folder separately for CLI deployment. Never upload only the containing folder when using this option.
 
+
+## Christmas jumper collection - 27 October 2026
+
+The homepage promotion opens `xmas-jumpers.html`, showing only items in the **Christmas jumpers** category. Ordinary uniform stays on the main page. Both pages share the basket, secure checkout, PayPal link, admin account and reservation emails.
+
+To add donated jumpers, open **`xmas-jumper-stock.html`** and sign in with the existing admin account. The category defaults to Christmas jumpers. Add an item with its photograph, then add sizes, conditions, prices and quantities. The new item is selected automatically for adding stock. Use a separate item/photo for each donated design if needed.
+
+Admin's **Manage category** selector filters the item/stock list and stock-entry dropdown. **All categories** shows everything. To move an existing item, change its category and press **Save category**; its photo and stock are retained. The ordinary homepage announcement appears only on the uniform storefront.
+
+The live database category update is applied. For another existing installation, run `supabase/categories.sql` before publishing these frontend files, or run the updated repeatable `upgrade.sql`. Existing items default to `uniform`; the allowed values are `uniform` and `xmas_jumpers`. This update needs no checkout-function redeployment and makes no changes to auth or RLS policies. No example jumper stock is added to production.
+
 ## Preserved behaviour
 
 - Shop and admin, announcements, item/stock editing and cancellation/restocking.
