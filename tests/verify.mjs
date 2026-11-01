@@ -74,6 +74,12 @@ await db.exec("reset role;update items set category='uniform' where id=1");
 const seasonalStock=(await db.query("insert into stock(item_id,size,price_pence,quantity)select id,'7-8',150,2 from items where name='Donated Christmas Jumper' returning id")).rows[0].id;
 const mixed=(await reserve(crypto.randomUUID(),[{stock_id:1,quantity:1},{stock_id:seasonalStock,quantity:1}])).rows[0].result;
 ok(mixed.total_pence===400&&mixed.lines.length===2,'secure checkout supports mixed uniform and Christmas jumper basket with server-calculated prices');
+await db.exec(read('supabase/import-christmas-stock.sql'));
+ok((await db.query("select count(*)::int as n from items i join stock s on s.item_id=i.id where i.image_url like '%/assets/christmas/%' and i.category='xmas_jumpers' and s.price_pence=200 and s.quantity=1")).rows[0].n===15,'photo import creates fifteen individual Christmas stock rows at suggested donation GBP2');
+await db.exec("update stock set quantity=0,price_pence=300 where item_id=(select min(id) from items where image_url like '%/assets/christmas/%')");
+await db.exec(read('supabase/import-christmas-stock.sql'));
+ok((await db.query("select count(*)::int as n from items where image_url like '%/assets/christmas/%'")).rows[0].n===15,'rerunning photo import does not duplicate the fifteen listings');
+ok((await db.query("select quantity,price_pence from stock where item_id=(select min(id) from items where image_url like '%/assets/christmas/%')")).rows[0].quantity===0&&(await db.query("select price_pence from stock where item_id=(select min(id) from items where image_url like '%/assets/christmas/%')")).rows[0].price_pence===300,'rerunning photo import preserves reserved stock and manually changed prices');
 await db.close();
 // Pure browser helpers, without contacting the live service.
 const data=new Map();const location=new URL('https://example.github.io/uniform-shop/');
@@ -103,7 +109,7 @@ function productFixture(category){
  return {ctx,nodes,saved,buttons};
 }
 const oneOff=productFixture('xmas_jumpers');let card=oneOff.nodes.get('products').innerHTML;
-ok(card.includes('Size: 3-4 years')&&card.includes('Only one available')&&!card.includes('<select')&&!card.includes('type="number"'),'Christmas one-off card displays size and price without dropdown or quantity input');
+ok(card.includes('Size: 3-4 years')&&card.includes('Suggested donation: £2.50')&&card.includes('Only one available')&&!card.includes('<select')&&!card.includes('type="number"'),'Christmas one-off card displays size and price without dropdown or quantity input');
 oneOff.buttons[0].onclick();let oneOffBasket=JSON.parse([...oneOff.saved.values()][0]);
 ok(oneOffBasket.lines['11']===1,'one click adds exactly one Christmas item directly by stock ID');
 oneOff.buttons[0].onclick();oneOffBasket=JSON.parse([...oneOff.saved.values()][0]);

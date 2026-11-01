@@ -1,0 +1,43 @@
+-- SPS PTFA: import the 15 supplied Christmas photographs as individual stock.
+-- Suggested donation: GBP 2 each; initial quantity: one each.
+-- Run once in this shop's Supabase SQL Editor. Safe to rerun:
+-- existing item records and stock quantities/prices are left unchanged.
+-- In particular, a reserved item (quantity zero) is NOT replenished.
+begin;
+do $$
+declare r record; v_item_id bigint;
+begin
+ for r in select * from (values
+  ('Matalan red reindeer Christmas jumper', '18-24 months', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/matalan-red-reindeer-christmas-jumper-18-24-months-964a4c07.jpg#rotate=270'),
+  ('Tu multicolour Christmas jumper', '2-3 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-multicolour-christmas-jumper-2-3-years-12d5ba32.jpg#rotate=270'),
+  ('M&S red Christmas cat T-shirt', '3-4 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/m-s-red-christmas-cat-t-shirt-3-4-years-df4b6ced.jpg#rotate=270'),
+  ('Tu grey penguin Christmas jumper', '3-4 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-grey-penguin-christmas-jumper-3-4-years-27315dde.jpg#rotate=270'),
+  ('PatPat red reindeer Christmas jumper', '3-4 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/patpat-red-reindeer-christmas-jumper-3-4-years-988bf633.jpg#rotate=270'),
+  ('Nutmeg white penguin Christmas T-shirt', '4-5 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/nutmeg-white-penguin-christmas-t-shirt-4-5-years-d5a781e0.jpg#rotate=270'),
+  ('George red sequin reindeer Christmas jumper', '4-5 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-red-sequin-reindeer-christmas-jumper-4-5-years-753a96f4.jpg#rotate=270'),
+  ('Next red reindeer Christmas jumper', '4-5 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/next-red-reindeer-christmas-jumper-4-5-years-855a492b.jpg#rotate=270'),
+  ('Tu red sunglasses reindeer Christmas jumper', '5 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-red-sunglasses-reindeer-christmas-jumper-5-years-252d6e1f.jpg#rotate=270'),
+  ('George green Santa Christmas jumper', '5-6 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-green-santa-christmas-jumper-5-6-years-f0629e95.jpg#rotate=270'),
+  ('Tu blue Gruffalo Christmas jumper', '5-6 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-blue-gruffalo-christmas-jumper-5-6-years-76d23e5c.jpg#rotate=270'),
+  ('Tu pink owl Christmas jumper dress', '5-6 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-pink-owl-christmas-jumper-dress-5-6-years-8a95d52e.jpg#rotate=270'),
+  ('Primark red fluffy penguin Christmas jumper', '5-6 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/primark-red-fluffy-penguin-christmas-jumper-5-6-years-1a4a02dc.jpg#rotate=270'),
+  ('George blue penguins Christmas jumper', '5-6 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-blue-penguins-christmas-jumper-5-6-years-9f56ca67.jpg#rotate=270'),
+  ('Tu red patterned Christmas jumper dress', '6-7 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-red-patterned-christmas-jumper-dress-6-7-years-23e7ab38.jpg#rotate=270')
+ ) as supplied(name,size,image_url)
+ loop
+  select id into v_item_id from public.items where image_url=r.image_url limit 1;
+  if not found then
+   insert into public.items(name,image_url,category)
+   values(r.name,r.image_url,'xmas_jumpers') returning id into v_item_id;
+  end if;
+  if not exists(select 1 from public.stock where item_id=v_item_id) then
+   insert into public.stock(item_id,size,condition,price_pence,quantity)
+   values(v_item_id,r.size,'Pre-loved',200,1);
+  end if;
+ end loop;
+end $$;
+commit;
+select i.name,s.size,s.condition,s.price_pence,s.quantity
+from public.items i join public.stock s on s.item_id=i.id
+where i.image_url like 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/%'
+order by i.name;
