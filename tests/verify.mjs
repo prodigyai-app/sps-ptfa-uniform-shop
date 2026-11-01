@@ -92,6 +92,27 @@ ok(run("safeImage('javascript:alert(1)')")==='assets/logo.png','unsafe image URL
 ok(!run("linkify('<img src=x onerror=alert(1)> https://example.com/a\"b test@example.com')").includes('<img'),'announcement HTML is escaped');
 data.set('spsBasket:/uniform-shop/',JSON.stringify({started:Date.now()-600001,lines:{1:1}}));ok(Object.keys(run('getBasket().lines')).length===0,'ten-minute basket expires');
 data.set('spsBasket:/uniform-shop/',JSON.stringify({started:Date.now(),lines:{1:-1}}));ok(Object.keys(run('getBasket().lines')).length===0,'corrupt stored basket rejected');
+// Exercise actual product-card rendering and click handlers with a minimal local DOM.
+function productFixture(category){
+ const nodes=new Map(),saved=new Map();let buttons=[];
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{textContent:'',innerHTML:'',value:id.startsWith('variant-')?'11':'1',classList:{toggle:()=>{}},querySelectorAll:()=>buttons});return nodes.get(id)};
+ Object.defineProperty(node('products'),'innerHTML',{get(){return this.html||''},set(value){this.html=value;buttons=[...value.matchAll(/<button[^>]*data-add="([^"]+)"(?: data-stock="([^"]+)")?[^>]*>/g)].map(m=>({dataset:{add:m[1],...(m[2]?{stock:m[2]}:{})}}))}});
+ const ctx=vm.createContext({window:{supabase:{createClient:()=>({})},SHOP_CONFIG:{supabaseUrl:'https://example.supabase.co',supabaseAnonKey:'sb_publishable_test'},scrollTo:()=>{}},document:{body:{dataset:{catalogue:category}},getElementById:node},location,URL,URLSearchParams,localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)}});
+ vm.runInContext(read('site/app.js').slice(0,read('site/app.js').indexOf('function renderBasket')),ctx);
+ vm.runInContext(`items=[{id:1,name:'Red <reindeer> jumper',category:'${category}',image_url:'https://example.supabase.co/photo.jpg#rotate=270'}];stock=[{id:11,item_id:1,size:'3-4 years',condition:'Pre-loved',price_pence:250,quantity:1}];renderProducts();`,ctx);
+ return {ctx,nodes,saved,buttons};
+}
+const oneOff=productFixture('xmas_jumpers');let card=oneOff.nodes.get('products').innerHTML;
+ok(card.includes('Size: 3-4 years')&&card.includes('Only one available')&&!card.includes('<select')&&!card.includes('type="number"'),'Christmas one-off card displays size and price without dropdown or quantity input');
+oneOff.buttons[0].onclick();let oneOffBasket=JSON.parse([...oneOff.saved.values()][0]);
+ok(oneOffBasket.lines['11']===1,'one click adds exactly one Christmas item directly by stock ID');
+oneOff.buttons[0].onclick();oneOffBasket=JSON.parse([...oneOff.saved.values()][0]);
+ok(oneOffBasket.lines['11']===1&&oneOff.nodes.get('message').textContent.includes('already in your basket'),'repeated clicks cannot add the single Christmas item twice');
+ok(card.includes('rotate(-90)')&&!card.includes('photo.jpg#rotate')&&card.includes('Red &lt;reindeer&gt; jumper'),'photo rotation is presentation only and listing text remains escaped');
+const ordinary=productFixture('uniform');card=ordinary.nodes.get('products').innerHTML;
+ok(card.includes('<select')&&card.includes('type="number"'),'normal uniform retains size and quantity selection');
+vm.runInContext('stock[0].quantity=0;renderProducts()',oneOff.ctx);
+ok(oneOff.nodes.get('products').innerHTML.includes('Currently out of stock')&&!oneOff.nodes.get('products').innerHTML.includes('data-add='),'unavailable one-off item has no Add to basket button');
 // Edge function executed with mocked database, Turnstile, Gmail and Resend transports.
 const edge=ts.transpileModule(read('supabase/functions/reserve/index.ts').replace(/^import .*;$/gm,''),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None},reportDiagnostics:true});
 ok(!edge.diagnostics?.length,'Edge Function TypeScript transpiles');

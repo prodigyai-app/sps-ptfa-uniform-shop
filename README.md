@@ -65,3 +65,11 @@ Names, email addresses and child/class details are private admin-only data. `che
 Official references: [Supabase keys](https://supabase.com/docs/guides/getting-started/api-keys), [Auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls), [Edge Function auth](https://supabase.com/docs/guides/functions/auth), [GitHub Pages workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), [Google app passwords](https://support.google.com/mail/answer/185833?hl=en), [SMTP transport](https://nodemailer.com/smtp), [Supabase SMTP port limits](https://supabase.com/docs/guides/functions/limits), [Resend idempotency](https://resend.com/changelog/idempotency-keys).
 
 Current catalogue check: eight items have photo URLs. There are no stock rows yet; add the size, condition, price and available quantity for each item through Admin. Two authorized email tests were completed and their exact temporary stock/order records removed.
+
+## Individual donated Christmas items - 1 November 2026
+
+Christmas stock is presented with its size, condition and price visible and a direct Add to basket button. There is no size dropdown or quantity input in the Christmas catalogue; each click adds one unit, and the available stock limit prevents the same one-off item being added twice. Ordinary uniform keeps its existing size/quantity controls. Add each donated design as its own item/photo and set quantity to 1.
+
+When a photo is sideways, tick **Rotate this photo 90° anticlockwise** while adding the item. The original uploaded file is preserved; its public URL carries a display-rotation fragment used by the product card. Christmas stock defaults to the neutral condition label Pre-loved, which can be changed in Admin.
+
+The initial five supplied photo listings are prepared locally. Their selling prices and an authorized upload connection are still required; they have not been inserted into the live catalogue by this update. The photo-only manifest is kept outside this public package.
