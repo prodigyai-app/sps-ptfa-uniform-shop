@@ -1,4 +1,4 @@
--- SPS PTFA: import the 20 supplied Christmas photographs as individual stock.
+-- SPS PTFA: import the 25 supplied Christmas photographs as individual stock.
 -- Suggested donation: GBP 2 each; initial quantity: one each.
 -- Run in this shop's Supabase SQL Editor. Safe to rerun:
 -- existing item records and stock quantities/prices are left unchanged.
@@ -27,7 +27,12 @@ begin
   ('Tu white patterned Christmas jumper', '7 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-white-patterned-christmas-jumper-7-years-bc9f8817.jpg#rotate=270'),
   ('Tu navy sequin Christmas cat jumper', '7 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/tu-navy-sequin-christmas-cat-jumper-7-years-5913dcff.jpg#rotate=270'),
   ('Next red Santa Christmas T-shirt', '7 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/next-red-santa-christmas-t-shirt-7-years-e06766e2.jpg#rotate=270'),
-  ('H&M red festive print Christmas T-shirt', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/h-m-red-festive-print-christmas-t-shirt-7-8-years-1f4952de.jpg#rotate=270')
+  ('H&M red festive print Christmas T-shirt', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/h-m-red-festive-print-christmas-t-shirt-7-8-years-1f4952de.jpg#rotate=270'),
+  ('Fruit of the Loom red elf Christmas T-shirt', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/fruit-of-the-loom-red-elf-christmas-t-shirt-7-8-years-27e8dfba.jpg#rotate=270'),
+  ('Y.D grey longline snowman Christmas jumper', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/y-d-grey-longline-snowman-christmas-jumper-7-8-years-f98d9b5e.jpg#rotate=270'),
+  ('Generation Fashion red reindeer Christmas jumper', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/generation-fashion-red-reindeer-christmas-jumper-7-8-years-796eed94.jpg#rotate=270'),
+  ('George green Chill penguin Christmas jumper', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-green-chill-penguin-christmas-jumper-8-9-years-03deedca.jpg#rotate=270'),
+  ('George red gaming reindeer Christmas jumper', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-red-gaming-reindeer-christmas-jumper-8-9-years-c6f6e48a.jpg#rotate=270')
  ) as supplied(name,size,image_url)
  loop
   select id into v_item_id from public.items where image_url=r.image_url limit 1;
