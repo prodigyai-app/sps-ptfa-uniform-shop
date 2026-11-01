@@ -1,8 +1,8 @@
 afa87fe9d13b1ebe48bca6733ef94a48b202ccc4d950a9119978eddc96d91b7b  .github/workflows/pages.yml
 e7ca15f4fc88e147cc32913a5b46aad8cebc9772808cb3fba80c0b5618bfa8b4  .gitignore
-1994c22644773fc3dc6d676a98c4a323025ce353d577dac9e8763c89618a21c0  DEPLOYMENT-STATUS.txt
+db6487da5db0e41d1ae56c1aba525ae6ce8efb1639a50046586783ae74f80a90  DEPLOYMENT-STATUS.txt
 09bee4785368984f070b7b4ad03c062121519dc610168f97f02d99d3cd49ec8a  package.json
-b9fd53d26ebb952f4e1bcaf3c1a7634686558fe5a5f8512c66767495b7b297f1  README.md
+99334a7e28117bb8b69cfe1d52e27667819439a6e9c8cba8e1c68e67a9b20e1c  README.md
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  site/.nojekyll
 75a233d505dd7de2a9d9888a1deb628e5506ce918da0a56f6f87a81130619ba8  site/app.js
 4c4915ff3f1b57570d4f12a3656530843546145eda12c5496da2e6305632f4bf  site/assets/20250930_174345.jpg
@@ -10,6 +10,7 @@ f403aac46f4351a2dbcc454ac619ea1932b6e5cb1e4926d7a94fe9f5ac91e517  site/assets/bo
 c44c132c17502b93e0c0c225f4c25c04eb9c68e06c39d21bffd91a2dcd9db410  site/assets/Cardigan.jpg
 27e8dfbaf544a3faae9e14b9c30d61b1276c06b798d9232f422b51fedffa35f3  site/assets/christmas/fruit-of-the-loom-red-elf-christmas-t-shirt-7-8-years-27e8dfba.jpg
 796eed9451c1d5149629f1d818a5930716b07f3ae0eb7f73842bb18e1b4e6944  site/assets/christmas/generation-fashion-red-reindeer-christmas-jumper-7-8-years-796eed94.jpg
+c612aae0cbefe54701feddb676b59c4b33619d921183b98a6bffd0a12a3d8a47  site/assets/christmas/george-black-gold-reindeer-christmas-t-shirt-8-9-years-c612aae0.jpg
 9f56ca676dc854345c635f308d0dcc63424b990ff0cd1bc988367e1446477705  site/assets/christmas/george-blue-penguins-christmas-jumper-5-6-years-9f56ca67.jpg
 03deedca79bfc6cdfd8358b7e6cf506e4e6370a556faecc5c0440d905d53104f  site/assets/christmas/george-green-chill-penguin-christmas-jumper-8-9-years-03deedca.jpg
 f0629e954875f37bbc3ed4a4bb195146ffcee6bd86a98b812570f5112dfd81a0  site/assets/christmas/george-green-santa-christmas-jumper-5-6-years-f0629e95.jpg
@@ -20,10 +21,12 @@ df4b6cedb4a231242b74a81c54ee3a65e28db26c75df24201a0d652b336daea5  site/assets/ch
 964a4c07d3edc9b36e354d48dceb34ef96be7da8217752daaae0af45cde458df  site/assets/christmas/matalan-red-reindeer-christmas-jumper-18-24-months-964a4c07.jpg
 855a492b7d12ffaf97ab121f871241cec411e1fc4eabb7f16fd81dc8c61481bf  site/assets/christmas/next-red-reindeer-christmas-jumper-4-5-years-855a492b.jpg
 e06766e2fc84fb0974574dfc2b4ea15e17e0f66fd7cf18386ce2943fb8c95dc6  site/assets/christmas/next-red-santa-christmas-t-shirt-7-years-e06766e2.jpg
+162e629e9ccd3b9ae9a4106568ab12a6b845560b057db07068419e7432ce3846  site/assets/christmas/next-red-santa-christmas-t-shirt-9-years-162e629e.jpg
 d5a781e0eb2ae0cf866bff373adc6134b30f46c285921b304561028d794dec11  site/assets/christmas/nutmeg-white-penguin-christmas-t-shirt-4-5-years-d5a781e0.jpg
 988bf6334197ce78fac2df7fc8ec2ef52dca82e862fab17833c93b80774f776f  site/assets/christmas/patpat-red-reindeer-christmas-jumper-3-4-years-988bf633.jpg
 fa213ad6d58ec3f57fdd6b03ad2707fa7234f41830438cda9db14875b51bef15  site/assets/christmas/pepperts-black-ho-ho-ho-christmas-jumper-6-8-years-fa213ad6.jpg
 1a4a02dc420a6c9bc5b7ba9ddaa19007515c52c714bd514f8183acf77951d95e  site/assets/christmas/primark-red-fluffy-penguin-christmas-jumper-5-6-years-1a4a02dc.jpg
+df6261087ba3746ee5a04df1b1c986dcce3ed97916a46b608915776d75776d81  site/assets/christmas/primark-red-reindeer-and-snowflakes-christmas-jumper-8-9-years-df626108.jpg
 76d23e5c70a7ee90dc60ebd7c1bf54c5636dbe96dfaccc11059585c09fa05bc3  site/assets/christmas/tu-blue-gruffalo-christmas-jumper-5-6-years-76d23e5c.jpg
 27315dde6243d3efa4c34e396d5eb9391159ab58dfd209908b0fa9f681f38f2a  site/assets/christmas/tu-grey-penguin-christmas-jumper-3-4-years-27315dde.jpg
 12d5ba32dee7a68adc522e7f33fc20505a5c08e7a38301273b14853d294afdbc  site/assets/christmas/tu-multicolour-christmas-jumper-2-3-years-12d5ba32.jpg
@@ -52,8 +55,8 @@ ecc957d28d70d3cd9e57b0c933254bf2c393154f181c9b1bafec4f6f4baae897  site/styles.cs
 a04b22b11a69e28f6489aafbf825cedf45facfb846b10fe8431a27002d5c3160  supabase/categories.sql
 4e9375a4ab8d4c4345eda18b315f2932429fc6afd07235fe1d8781f536152fce  supabase/config.toml
 c8b55f42721917901ee373ed2aa851e536e6710ea8953949586bcfb2aa91fed4  supabase/functions/reserve/index.ts
-ac681e2149963fd049410967907ebf75ac527ef61f6e3612a45171176cc0ace6  supabase/import-christmas-stock.sql
+f223eeebced549c11350a1d8a18999436d932fed9050fe8a3cd15a290b3deee1  supabase/import-christmas-stock.sql
 bfd3424818b972eb8aee3cc6c4d26f3d4517348813fbc25ee4b92f3e73bcf4bc  supabase/schema.sql
 9f62cee05ead78bdb9f1fb8e4d5db844bedc2c1211d0cb349df25be1362cbcbd  supabase/upgrade.sql
 0e7985c5422f127aa3926e6877e476cb35714d429174daa42e599f1bb4be964f  tests/verify.mjs
-a9b7eccd17678af07413bd35ffd58fc8b67d923953c05f01852b6100da1a68fd  VERIFICATION.md
+cb5fb3391fd10eeff6400e00338f8f303cd8190b6b434c1ce1f92d57dfd16a21  VERIFICATION.md

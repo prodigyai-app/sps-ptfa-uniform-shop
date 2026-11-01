@@ -1,4 +1,4 @@
--- SPS PTFA: import the 25 supplied Christmas photographs as individual stock.
+-- SPS PTFA: import the 28 supplied Christmas photographs as individual stock.
 -- Suggested donation: GBP 2 each; initial quantity: one each.
 -- Run in this shop's Supabase SQL Editor. Safe to rerun:
 -- existing item records and stock quantities/prices are left unchanged.
@@ -32,7 +32,10 @@ begin
   ('Y.D grey longline snowman Christmas jumper', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/y-d-grey-longline-snowman-christmas-jumper-7-8-years-f98d9b5e.jpg#rotate=270'),
   ('Generation Fashion red reindeer Christmas jumper', '7-8 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/generation-fashion-red-reindeer-christmas-jumper-7-8-years-796eed94.jpg#rotate=270'),
   ('George green Chill penguin Christmas jumper', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-green-chill-penguin-christmas-jumper-8-9-years-03deedca.jpg#rotate=270'),
-  ('George red gaming reindeer Christmas jumper', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-red-gaming-reindeer-christmas-jumper-8-9-years-c6f6e48a.jpg#rotate=270')
+  ('George red gaming reindeer Christmas jumper', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-red-gaming-reindeer-christmas-jumper-8-9-years-c6f6e48a.jpg#rotate=270'),
+  ('Primark red reindeer and snowflakes Christmas jumper', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/primark-red-reindeer-and-snowflakes-christmas-jumper-8-9-years-df626108.jpg#rotate=270'),
+  ('George black gold reindeer Christmas T-shirt', '8-9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/george-black-gold-reindeer-christmas-t-shirt-8-9-years-c612aae0.jpg#rotate=270'),
+  ('Next red Santa Christmas T-shirt', '9 years', 'https://prodigyai-app.github.io/sps-ptfa-uniform-shop/assets/christmas/next-red-santa-christmas-t-shirt-9-years-162e629e.jpg')
  ) as supplied(name,size,image_url)
  loop
   select id into v_item_id from public.items where image_url=r.image_url limit 1;
