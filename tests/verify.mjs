@@ -81,6 +81,25 @@ await db.exec("update stock set quantity=0,price_pence=300 where item_id=(select
 await db.exec(read('supabase/import-christmas-stock.sql'));
 ok((await db.query("select count(*)::int as n from items where image_url like '%/assets/christmas/%'")).rows[0].n===christmasPhotoCount,'rerunning photo import does not duplicate the supplied listings');
 ok((await db.query("select quantity,price_pence from stock where item_id=(select min(id) from items where image_url like '%/assets/christmas/%')")).rows[0].quantity===0&&(await db.query("select price_pence from stock where item_id=(select min(id) from items where image_url like '%/assets/christmas/%')")).rows[0].price_pence===300,'rerunning photo import preserves reserved stock and manually changed prices');
+// Separate child details use a new service-only RPC; legacy requests retain their original replay semantics.
+const childStock=(await db.query("insert into stock(item_id,size,price_pence,quantity)values(1,'Child details test',300,2) returning id")).rows[0].id;
+const childRequest=crypto.randomUUID();
+const childReserve=(child='Test Child')=>db.query('select public.reserve_with_child($1,$2,$3,$4,$5::jsonb,$6) as result',[childRequest,'Test Parent','Year 2','test@example.com',JSON.stringify([{stock_id:childStock,quantity:1}]),child]);
+await db.exec('set role service_role');
+const childReceipt=(await childReserve()).rows[0].result;
+const savedChild=(await db.query('select child_name,child_class from reservations where id=$1',[childReceipt.id])).rows[0];
+ok(savedChild.child_name==='Test Child'&&savedChild.child_class==='Year 2','child name and class saved separately in the same stock reservation transaction');
+ok((await childReserve()).rows[0].result.replayed===true,'separate child details checkout retries are idempotent');
+await assert.rejects(()=>childReserve('Different Child'));
+await assert.rejects(()=>childReserve(' '));
+ok(true,'changed or empty child name cannot reuse a checkout reference');
+await db.exec('reset role');
+ok((await db.query('select quantity from stock where id=$1',[childStock])).rows[0].quantity===1,'child details retry decrements stock once');
+await db.exec('set role anon');await assert.rejects(()=>childReserve());
+ok((await db.query('select child_name from reservations')).rows.length===0,'child names remain private to authorised admins');
+await db.exec('reset role;set role authenticated');await assert.rejects(()=>childReserve());
+ok(true,'guest and signed-in non-admin cannot call the child-details reservation RPC');
+await db.exec('reset role');
 await db.close();
 // Pure browser helpers, without contacting the live service.
 const data=new Map();const location=new URL('https://example.github.io/uniform-shop/');
@@ -125,6 +144,8 @@ const edge=ts.transpileModule(read('supabase/functions/reserve/index.ts').replac
 ok(!edge.diagnostics?.length,'Edge Function TypeScript transpiles');
 const env=new Map([['SHOP_ORIGIN','https://example.github.io'],['SUPABASE_URL','https://example.supabase.co'],['SUPABASE_SERVICE_ROLE_KEY','test-service-key']]);let handler,calls=0,sends=0,emailStatus,mode='new';
 const edgeDb={rpc:async()=>{calls++;return{data:{id:request,total_pence:250,lines:[{name:'Sweatshirt',size:'5-6',condition:'Good',price_pence:250,quantity:1}],replayed:mode==='replay',email_status:'accepted'}}},from:()=>({update:x=>({eq:async()=>{emailStatus=x.email_status;return{}}})})};
+let lastRpc,lastRpcArgs;
+const originalRpc=edgeDb.rpc;edgeDb.rpc=async(name,args)=>{lastRpc=name;lastRpcArgs=args;return originalRpc()};
 let smtpOptions,smtpMessages=[],smtpClosed=0,smtpMode='success';
 const nodemailer={createTransport:options=>{smtpOptions=options;return{sendMail:async message=>{smtpMessages.push(message);if(smtpMode==='throw')throw Error('test SMTP failure');return smtpMode==='reject'&&message.to==='test@example.com'?{accepted:[],rejected:[message.to]}:{accepted:[message.to],rejected:[]}},close:()=>{smtpClosed++}}}};
 const edgeCtx=vm.createContext({Deno:{env:{get:k=>env.get(k)},serve:h=>handler=h},nodemailer,createClient:()=>edgeDb,Response,TextEncoder,FormData,URL,AbortSignal,console,fetch:async(url,opts)=>{if(url.includes('turnstile'))return Response.json({success:true,hostname:'example.github.io'});sends++;return Response.json({id:'provider-id'},{status:mode==='mailfail'?500:200})}});
@@ -155,5 +176,18 @@ smtpMode='throw';response=await post();ok(response.status===200&&(await response
 ok(smtpClosed===3,'Gmail transport is closed after accepted, rejected and failed attempts');
 mode='replay';const smtpBefore=smtpMessages.length;response=await post();ok((await response.json()).reservation_id===request&&smtpMessages.length===smtpBefore,'Gmail checkout replay sends no additional messages');
 env.delete('RESEND_API_KEY');env.delete('EMAIL_FROM');mode='new';smtpMode='success';response=await post();ok((await response.json()).email_status==='accepted','Gmail requires no Resend credentials or custom domain (mocked)');
+const childEmailStart=smtpMessages.length;
+response=await post({...payload,child_name:'Test <Child>',child_class:'Year 2'});
+ok(response.status===200&&lastRpc==='reserve_with_child'&&lastRpcArgs.p_child_name==='Test <Child>'&&lastRpcArgs.p_class==='Year 2','Edge Function sends separate validated child name and class to atomic RPC');
+ok(smtpMessages.slice(childEmailStart).every(m=>m.html.includes('Child: Test &lt;Child&gt;<br>Class: Year 2')),'parent and PTFA emails include separate escaped child name and class');
+const callsBeforeInvalidChild=calls;
+for(const child_name of ['', ' ', 123, 'x'.repeat(121)])ok((await post({...payload,child_name})).status===400,'invalid child name rejected before reserving stock');
+ok(calls===callsBeforeInvalidChild,'invalid child name never reaches database');
+response=await post();ok(response.status===200&&lastRpc==='reserve_once'&&!('p_child_name' in lastRpcArgs),'cached legacy checkouts still use the original compatible RPC');
+for(const html of ['site/index.html','site/xmas-jumpers.html','site/xmas-jumper-stock.html']){
+ const page=read(html);
+ ok(page.includes('name="child_name" required')&&page.includes('name="child_class" required')&&page.includes('id="thanks-total"'),'four-field checkout and separate receipt total on '+html);
+ ok(page.includes('id="admin-stock-page"')&&page.includes('id="admin-orders-page"')&&page.includes('<input name="condition" required'),'separate admin sections and free-text stock condition on '+html);
+}
 console.log(`TOTAL ${checks} checks passed. No live writes or email sends.`);
 

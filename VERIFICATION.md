@@ -57,3 +57,11 @@ The import script was executed twice against the local PostgreSQL fixture: exact
 The SQL Editor returned 28 rows after the import. Independent public Data API reads verified every supplied image URL against the local manifest, one matching item per photo, the expected item name/category and exactly one stock row with the labelled size, price_pence 200 and quantity one. Eight normal uniform items remain intact. No security policies or account permissions were changed by the import.
 
 The live Christmas page displayed all 28 item cards. A browser basket check added one item and confirmed the basket remained at one unit after repeated Add clicks, then removed the test basket line. No reservation or email was submitted for this check. The shared checkout and email function are unchanged. A live screenshot is supplied separately as christmas-stock-live.png.
+
+
+## 4 November 2026 checkout/admin verification
+
+- 94 automated checks pass, including separate child storage, idempotent retries, service-only RPC permissions, private child data, legacy checkout compatibility and escaped child details in both mocked emails.
+- Local browser exercised four-field checkout, separate total row, clear notification text, Stock/Order management navigation, free-text conditions and 390px mobile layout without horizontal overflow.
+- Supabase database assertions verify separate child details, stock decremented once on retry, RPC permissions and reservation RLS. Test changes are rolled back; no email is sent by these SQL checks.
+- New email content is tested with mocked transports. No new end-to-end email delivery test is claimed.

@@ -73,3 +73,13 @@ Christmas stock is presented with its size, condition and price visible and a di
 When a photo is sideways, tick **Rotate this photo 90° anticlockwise** while adding the item. The original uploaded file is preserved; its public URL carries a display-rotation fragment used by the product card. Christmas stock defaults to the neutral condition label Pre-loved, which can be changed in Admin.
 
 The 28 supplied photos are included under `site/assets/christmas/` as unchanged original files. Their agreed suggested donation is £2 each. The `supabase/import-christmas-stock.sql` import was applied and verified on 1 November 2026: all 28 item/stock records are live. The import is repeat-safe and preserves existing stock quantities and edited prices, including reserved items at zero. The signed-in Edge dashboard was used after browser access became available. Each imported listing has the labelled size, category Christmas jumpers, condition Pre-loved, suggested donation £2 and initial quantity one. The eight existing uniform items were retained. Future Admin photo uploads continue to use Supabase Storage.
+
+## Checkout and admin update — 4 November 2026
+
+Checkout now collects parent/carer name, child name, child class and email in four separate fields. The child name is stored in the private reservations table and appears separately from class in both notification emails and admin orders. Existing combined child/class reservations remain readable.
+
+For an existing installation, apply `supabase/child-details-upgrade.sql`, deploy the updated `reserve` Edge Function with the existing secrets and guest-checkout setting, then publish `site/`. A fresh installation can continue using `schema.sql` followed by `upgrade.sql`, which includes the repeatable child-details update. The new `reserve_with_child` RPC is callable only by the server role; the original RPC remains for cached pages and checkout retries.
+
+The receipt displays the reservation total on its own row. Email confirmation text means the provider accepted the parent and PTFA messages for sending; delivery is not guaranteed. Admin has separate Stock management and Order management sections, with bookmarkable `?view=admin&admin_page=stock` and `?view=admin&admin_page=orders` links. Stock condition is required free text.
+
+Validation: 94 local checks cover PostgreSQL transactions, retry safety, permissions, separate child details and escaped email templates. Browser previews use sample data, with no real emails sent. Live database checks run inside a rolled-back transaction.

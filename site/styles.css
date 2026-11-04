@@ -28,3 +28,10 @@ a.nav{text-decoration:none;text-align:center;display:inline-flex;align-items:cen
 .inline-form label.photo-rotation{display:flex;align-items:center;gap:8px;font-size:.86rem;flex-basis:180px}
 .photo-rotation input{width:auto;flex-shrink:0}
 @media(max-width:600px){.product svg.product-photo{height:150px;padding:10px}}
+
+/* Reservation receipt and separate admin sections. */
+.reservation-total{font-size:1.35rem;font-weight:750;margin:24px 0}
+.admin-subnav{margin:20px 0;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-start}
+.admin-subnav [aria-pressed="true"]{background:#003366;color:white;border-color:#003366}
+#admin-stock-page,#admin-orders-page{min-width:0}
+@media(max-width:600px){.admin-subnav{margin-left:0}.admin-subnav button{flex:1 1 160px}}
