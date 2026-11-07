@@ -1,3 +1,7 @@
+# Admin order display fix - 7 November 2026
+
+108 automated checks pass. Two controlled concurrent-load regression tests cover the regular and Christmas admin scripts. Overlapping refreshes previously appended the same rows to a shared array; each load now gathers a private snapshot and only the latest load publishes it. Logout invalidates pending loads. Read-only live checks confirmed the reported two-line and three-line orders have matching stored totals. No order records, totals or stock were changed for this fix.
+
 # Reservation checkout update - 7 November 2026
 
 106 automated local checks pass. Added regression checks for autofill-safe spam fields, cached legacy forms, clear failure/payment instructions, amount-specific GBP PayPal links and escaped manual payment details. Browser preview confirmed the four-field checkout and successful confirmation screen; its backend and emails were mocked. A live deliberately invalid spam-check request returned ANTI_SPAM_CHECK without creating an order or sending mail. The private payment-column upgrade was applied successfully; customer records remain protected by existing RLS. A separate private transaction check verified nine-line manual entry, stock changes and duplicate-run safety.

@@ -206,5 +206,20 @@ for(const file of ['site/index.html','site/xmas-jumpers.html','site/xmas-jumper-
  ok(page.includes('Do not pay')&&page.includes('within 2 days')&&page.includes('id="paypal-pay"')&&!page.includes('within 3 days'),'reserve-before-payment instructions and consistent deadline on '+file);
 }
 ok(run('paypalLink(1700)')==='https://www.paypal.com/paypalme/spptfa/17.00GBP','PayPal link requests the confirmed server total in GBP');
+
+// Reproduce overlapping admin refreshes with controlled response ordering.
+for(const file of ['site/app.js','site/xmas-page.js']){
+ const src=read(file),start=src.indexOf('let adminLoadVersion=0;'),end=src.indexOf('\n}',start)+2;
+ const pending=[];let rendered=0;
+ const nodes={'announcement-form':{elements:{announcement:{value:''}}},announcement:{textContent:'Test'}};
+ const mockDb={from(table){const q={select(){return q},order(){return q},in(){return q},limit(){return q},range(){return q},then(resolve){if(table==='reservations')return Promise.resolve({data:[{id:'order'}]}).then(resolve);return new Promise(done=>pending.push(done)).then(resolve)}};return q}};
+ const c=vm.createContext({db:mockDb,fetchShop:async()=>{},notice:()=>{},$:id=>nodes[id],renderAdminCatalogue:()=>{},renderOrders:()=>{rendered++}});
+ vm.runInContext('let orders=[],lines=[];'+src.slice(start,end),c);
+ const first=vm.runInContext('loadAdmin()',c);while(pending.length<1)await new Promise(resolve=>setTimeout(resolve,0));
+ const second=vm.runInContext('loadAdmin()',c);while(pending.length<2)await new Promise(resolve=>setTimeout(resolve,0));
+ pending[1]({data:[{id:1,reservation_id:'order',price_pence:300},{id:2,reservation_id:'order',price_pence:200}]});await second;
+ pending[0]({data:[{id:1,reservation_id:'order',price_pence:300},{id:2,reservation_id:'order',price_pence:200}]});await first;
+ ok(vm.runInContext('lines.length===2 && lines.reduce((s,l)=>s+l.price_pence,0)===500',c)&&rendered===1,'overlapping admin loads show each line once and discard stale results in '+file);
+}
 console.log(`TOTAL ${checks} checks passed. No live writes or email sends.`);
 
