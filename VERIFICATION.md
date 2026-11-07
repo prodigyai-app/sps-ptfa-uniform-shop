@@ -1,3 +1,11 @@
+# Reservation checkout update - 7 November 2026
+
+106 automated local checks pass. Added regression checks for autofill-safe spam fields, cached legacy forms, clear failure/payment instructions, amount-specific GBP PayPal links and escaped manual payment details. Browser preview confirmed the four-field checkout and successful confirmation screen; its backend and emails were mocked. A live deliberately invalid spam-check request returned ANTI_SPAM_CHECK without creating an order or sending mail. The private payment-column upgrade was applied successfully; customer records remain protected by existing RLS. A separate private transaction check verified nine-line manual entry, stock changes and duplicate-run safety.
+
+Payment is checked manually by the PTFA. The consistent payment deadline is 2 days. The honeypot fix does not add CAPTCHA or rate limiting; existing optional Turnstile validation remains unchanged.
+
+## Earlier verification history
+
 # Verification — updated 27 October 2026
 
 **Result: 74 automated local checks passed.** See `tests/verify.mjs`. Install Node.js 20+ and run `npm install` then `npm test` to repeat. No build is needed for the website. Test-only dependencies are not served by the included Pages workflow.
@@ -16,7 +24,7 @@
 
 The frontend, database upgrade and clean Edge Function v4 have been deployed. Live frontend files match the package. A transaction on the real database verified reservation, retry and admin cancellation/restocking, then rolled back all fixture rows. One authorized live test reservation and two notifications have since been submitted, as recorded below. Admin sign-in, password-reset email, Storage upload and PayPal payment have not been tested. No concurrent multi-client load test or mobile-device browser test. Turnstile configuration, Gmail credentials and email delivery, final Pages URL/redirect settings and admin permissions must be checked in the acceptance test in README.
 
-Email `accepted` means SMTP/HTTP acceptance by the provider, not inbox delivery. Failed or pending notifications need manual follow-up; no automatic email retry queue is included. PayPal payments and cancellation of unpaid orders after three days remain manual.
+Email `accepted` means SMTP/HTTP acceptance by the provider, not inbox delivery. Failed or pending notifications need manual follow-up; no automatic email retry queue is included. PayPal payments and cancellation of unpaid orders after two days remain manual.
 
 ## Direct Supabase verification
 

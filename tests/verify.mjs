@@ -189,5 +189,22 @@ for(const html of ['site/index.html','site/xmas-jumpers.html','site/xmas-jumper-
  ok(page.includes('name="child_name" required')&&page.includes('name="child_class" required')&&page.includes('id="thanks-total"'),'four-field checkout and separate receipt total on '+html);
  ok(page.includes('id="admin-stock-page"')&&page.includes('id="admin-orders-page"')&&page.includes('<input name="condition" required'),'separate admin sections and free-text stock condition on '+html);
 }
+// Autofill regression: cached forms can send the old website field without being rejected.
+const beforeTrap=calls;
+response=await post({...payload,contact_check:'bot-filled'});const trapData=await response.json();
+ok(response.status===400&&trapData.code==='ANTI_SPAM_CHECK'&&calls===beforeTrap,'new spam trap rejects automated input before database or emails');
+response=await post({...payload,website:'autofilled.example'});
+ok(response.status===200&&calls===beforeTrap+1,'legacy website autofill no longer rejects a legitimate cached checkout');
+ok(smtpMessages.slice(-2).find(m=>m.to==='test@example.com').html.includes('/spptfa/2.50GBP')&&smtpMessages.slice(-2).find(m=>m.to==='test@example.com').html.includes('within 2 days')&&smtpMessages.slice(-2).find(m=>m.to==='test@example.com').html.includes('already paid'),'confirmation requests the correct GBP amount with consistent deadline and no-repeat-payment guidance');
+vm.runInContext(read('site/app.js').slice(read('site/app.js').indexOf('function orderPaymentDetails('),read('site/app.js').indexOf('function renderOrders(')),context);
+const paymentMarkup=run("orderPaymentDetails({total_pence:1700,payment_amount_pence:1700,payment_reference:'<receipt>',payment_received_on:'2026-11-04',order_notes:'<note>'})");
+ok(paymentMarkup.includes('Paid (recorded manually)')&&paymentMarkup.includes('&lt;receipt&gt;')&&paymentMarkup.includes('&lt;note&gt;')&&!paymentMarkup.includes('<receipt>'),'manual payment display uses recorded amount and escapes notes and reference');
+ok(run("orderPaymentDetails({total_pence:1700,payment_amount_pence:null})").includes('awaiting manual check'),'ordinary orders do not claim payment is verified');
+for(const file of ['site/index.html','site/xmas-jumpers.html','site/xmas-jumper-stock.html']){
+ const page=read(file);
+ ok(!page.includes('name="website"')&&page.includes('name="contact_check" type="text" value="" readonly')&&page.includes('<div hidden aria-hidden="true">'),'spam trap excluded from normal autofill and interaction on '+file);
+ ok(page.includes('Do not pay')&&page.includes('within 2 days')&&page.includes('id="paypal-pay"')&&!page.includes('within 3 days'),'reserve-before-payment instructions and consistent deadline on '+file);
+}
+ok(run('paypalLink(1700)')==='https://www.paypal.com/paypalme/spptfa/17.00GBP','PayPal link requests the confirmed server total in GBP');
 console.log(`TOTAL ${checks} checks passed. No live writes or email sends.`);
 

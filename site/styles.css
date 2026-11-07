@@ -35,3 +35,5 @@ a.nav{text-decoration:none;text-align:center;display:inline-flex;align-items:cen
 .admin-subnav [aria-pressed="true"]{background:#003366;color:white;border-color:#003366}
 #admin-stock-page,#admin-orders-page{min-width:0}
 @media(max-width:600px){.admin-subnav{margin-left:0}.admin-subnav button{flex:1 1 160px}}
+
+.order-payment{margin:12px 0;padding:10px 12px;background:#f0f6fa;border-radius:8px;overflow-wrap:anywhere}.order-note{white-space:pre-wrap;overflow-wrap:anywhere}

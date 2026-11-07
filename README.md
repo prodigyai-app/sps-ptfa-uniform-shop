@@ -83,3 +83,12 @@ For an existing installation, apply `supabase/child-details-upgrade.sql`, deploy
 The receipt displays the reservation total on its own row. Email confirmation text means the provider accepted the parent and PTFA messages for sending; delivery is not guaranteed. Admin has separate Stock management and Order management sections, with bookmarkable `?view=admin&admin_page=stock` and `?view=admin&admin_page=orders` links. Stock condition is required free text.
 
 Validation: 94 local checks cover PostgreSQL transactions, retry safety, permissions, separate child details and escaped email templates. Browser previews use sample data, with no real emails sent. Live database checks run inside a rolled-back transaction.
+
+
+## Checkout update (7 November 2026)
+
+Confirm the reservation before paying. The confirmation page and email provide a PayPal link for the server-calculated total in GBP; payment is due within 2 days. Checkout errors instruct parents to wait and contact the PTFA if they have already paid. Payment and collection remain manual.
+
+The repeatable upgrade includes nullable, admin-only payment metadata (`payment_amount_pence`, `payment_reference`, `payment_received_on`, `order_notes`). For an existing installation, `supabase/payment-records-upgrade.sql` adds these columns without changing RLS or grants. Orders with a recorded full payment display “Paid (recorded manually)”; other orders display “Payment: awaiting manual check”. A paid order remains reserved until fulfilled.
+
+The legacy `website` field is ignored because autofill can populate it. New forms use a hidden, readonly `contact_check` field excluded from normal autofill. Optional Turnstile and all server validation remain in place.

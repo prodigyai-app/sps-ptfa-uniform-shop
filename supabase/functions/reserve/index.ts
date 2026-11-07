@@ -23,8 +23,9 @@ Deno.serve(async req => {
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.request_id||''))return json({error:'Invalid checkout reference'},400);
   if(body.child_name!==undefined&&(typeof body.child_name!=='string'||body.child_name.trim().length<1||body.child_name.trim().length>120))return json({error:'Invalid child name'},400);
   if(typeof body.name!=='string'||typeof body.child_class!=='string'||typeof body.email!=='string')return json({error:'Invalid contact details'},400);
-  // Honeypot and optional Turnstile verification to limit automated fake orders.
-  if (body.website) return json({error:'Request rejected'},400);
+  // The legacy 'website' input can be populated by phone autofill. Ignore it so cached pages recover.
+  // New forms use a hidden, readonly contact_check trap. Optional Turnstile remains server-verified.
+  if (body.contact_check) return json({error:'The anti-spam check could not be completed. Reload the shop and try again. Do not pay until your reservation is confirmed.',code:'ANTI_SPAM_CHECK'},400);
   const secret = Deno.env.get('TURNSTILE_SECRET_KEY');
   if (secret) {
    const token = String(body.turnstile_token || '');
@@ -48,10 +49,10 @@ Deno.serve(async req => {
   if(emailConfigured()){
    const rows=data.lines.map((l:any)=>`<li>${esc(l.name)} — ${esc(l.size)}, ${esc(l.condition)} × ${l.quantity} (£${(l.price_pence*l.quantity/100).toFixed(2)})</li>`).join('');
    const total=`£${(data.total_pence/100).toFixed(2)}`;
-   const paypal='https://www.paypal.com/paypalme/spptfa';
+   const paypal='https://www.paypal.com/paypalme/spptfa/'+(data.total_pence/100).toFixed(2)+'GBP';
    const messages=[
     {kind:'admin',to:ptfaEmail,subject:'New uniform reservation',html:`<p>New reservation ${esc(data.id)}</p><p>Parent: ${esc(name)}<br>${childName===null?'Child/class: '+esc(childClass):'Child: '+esc(childName)+'<br>Class: '+esc(childClass)}<br>Email: ${esc(email)}</p><ul>${rows}</ul><p>Total: ${total}</p>`},
-    {kind:'parent',to:email,subject:'Your SPS PTFA uniform reservation',html:`<p>Dear ${esc(name)},</p><p>Thank you for reserving uniform.</p><p>${childName===null?'Child/class: '+esc(childClass):'Child: '+esc(childName)+'<br>Class: '+esc(childClass)}</p><ul>${rows}</ul><p><strong>Total: ${total}</strong></p><p>Please pay within 3 days at <a href="${paypal}">${paypal}</a>, using your name and child's class as the reference. The PTFA will arrange collection.</p><p>SPS PTFA Used Uniform Team</p>`}
+    {kind:'parent',to:email,subject:'Your SPS PTFA uniform reservation',html:`<p>Dear ${esc(name)},</p><p>Thank you for reserving uniform.</p><p>${childName===null?'Child/class: '+esc(childClass):'Child: '+esc(childName)+'<br>Class: '+esc(childClass)}</p><ul>${rows}</ul><p><strong>Total: ${total}</strong></p><p>Please pay within 2 days at <a href="${paypal}">${paypal}</a>, including your name, child's class and reservation reference ${esc(data.id)} in the payment note. If you have already paid, do not pay again; contact the PTFA to match your payment. After payment has been checked and your order prepared, the PTFA will take it to school for collection at pick-up.</p><p>SPS PTFA Used Uniform Team</p>`}
    ];
    let outcomes: boolean[];
    if(gmailPassword()){
